@@ -77,7 +77,7 @@ AVFILTER_DEFINE_CLASS(ssim);
 static void set_meta(AVDictionary **metadata, const char *key, char comp, float d)
 {
     char value[128];
-    snprintf(value, sizeof(value), "%0.2f", d);
+    snprintf(value, sizeof(value), "%a", d);
     if (comp) {
         char key2[128];
         snprintf(key2, sizeof(key2), "%s%c", key, comp);
@@ -199,6 +199,7 @@ static AVFrame *do_ssim(AVFilterContext *ctx, AVFrame *main,
     for (i = 0; i < s->nb_components; i++) {
         int cidx = s->is_rgb ? s->rgba_map[i] : i;
         set_meta(metadata, "lavfi.ssim.", s->comps[i], c[cidx]);
+        set_meta(metadata, "lavfi.ssim.dB.", s->comps[i], ssim_db(c[cidx], 1.0));
     }
     s->ssim_total += ssimv;
 
