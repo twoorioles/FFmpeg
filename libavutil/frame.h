@@ -424,6 +424,7 @@ typedef struct AVFrame {
  * The frame data may be corrupted, e.g. due to decoding errors.
  */
 #define AV_FRAME_FLAG_CORRUPT       (1 << 0)
+#define AV_FRAME_FLAG_INVISIBLE     (1 << 1)
 /**
  * @}
  */

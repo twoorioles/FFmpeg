@@ -305,6 +305,8 @@ static int vp9_alloc_frame(AVCodecContext *ctx, VP9Frame *f)
     }
     if (s->sidedata_flags & SIDEDATA_HEADER)
         f->frame_header = sd9->data;
+    if (s->s.h.invisible)
+        f->tf.f->flags |= AV_FRAME_FLAG_INVISIBLE;
 
     return 0;
 }

@@ -64,9 +64,13 @@ static int parse_frame(AVCodecParserContext *ctx, const uint8_t *buf, int size)
         if (ctx->pts == AV_NOPTS_VALUE)
             ctx->pts = s->pts;
         s->pts = AV_NOPTS_VALUE;
-    } else if (ctx->pts != AV_NOPTS_VALUE) {
-        s->pts = ctx->pts;
-        ctx->pts = AV_NOPTS_VALUE;
+        ctx->invisible = 0;
+    } else {
+        if (ctx->pts != AV_NOPTS_VALUE) {
+            s->pts = ctx->pts;
+            ctx->pts = AV_NOPTS_VALUE;
+        }
+        ctx->invisible = 1;
     }
 
     return 0;

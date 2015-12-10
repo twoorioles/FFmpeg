@@ -1280,6 +1280,9 @@ static int parse_packet(AVFormatContext *s, AVPacket *pkt, int stream_index)
              st->parser->pict_type == AV_PICTURE_TYPE_I))
             out_pkt.flags |= AV_PKT_FLAG_KEY;
 
+        if (st->parser->invisible == 1)
+            out_pkt.flags |= AV_PKT_FLAG_INVISIBLE;
+
         if (st->parser->key_frame == -1 && st->parser->pict_type ==AV_PICTURE_TYPE_NONE && (pkt->flags&AV_PKT_FLAG_KEY))
             out_pkt.flags |= AV_PKT_FLAG_KEY;
 
