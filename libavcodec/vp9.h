@@ -123,17 +123,65 @@ struct VP9mvrefPair {
     int8_t ref[2];
 };
 
+enum BitType {
+    BIT_TOTAL,
+    BIT_UNCOMPRESSED_HEADER,
+    BIT_COMPRESSED_HEADER,
+    BIT_BLOCK_DECOMPOSITION,
+    BIT_SEGMENT_ID,
+    BIT_SKIP_FLAG,
+    BIT_INTRA_FLAG,
+    BIT_TX,
+    BIT_INTRA_Y_MODE,
+    BIT_INTRA_UV_MODE,
+    BIT_INTER_COMP_FLAG,
+    BIT_INTER_1REF_FRAME,
+    BIT_INTER_2REF_FRAME,
+    BIT_INTER_FILTER,
+    BIT_INTER_MODE,
+    BIT_INTER_MV,
+    BIT_Y_COEFFS,
+    BIT_UV_COEFFS,
+    N_BIT_TYPES,
+};
+
 typedef struct VP9Frame {
     ThreadFrame tf;
     AVBufferRef *extradata;
     uint8_t *segmentation_map;
     struct VP9mvrefPair *mv;
     int uses_2pass;
+
+    void *frame_header, *bitstats_ptr;
+    uint8_t *pred[3], *recon[3];
+    uint16_t *bitsused[3];
+    uint64_t bitstats[N_BIT_TYPES];
+    struct Vp9BlockInfo *bi;
 } VP9Frame;
+
+struct Vp9BlockInfo {
+    enum BlockSize bs;
+    enum TxfmMode tx, uvtx;
+    uint8_t skip;
+    uint8_t intra;
+    uint8_t segment_id;
+    union {
+        struct {
+            enum IntraPredMode ymode[2][2], uvmode;
+        } ntra;
+        struct {
+            enum InterPredMode mvmode[2][2];
+            int16_t mv[2][2][2][2];
+            enum FilterMode filter;
+            uint8_t ref[2], comp;
+        } nter;
+    } i;
+};
 
 typedef struct VP9BitstreamHeader {
     // bitstream header
     uint8_t profile;
+    int8_t direct_ref_idx; // -1 if N/A
     uint8_t keyframe;
     uint8_t invisible;
     uint8_t errorres;
@@ -168,6 +216,7 @@ typedef struct VP9BitstreamHeader {
     struct {
         uint8_t enabled;
         uint8_t temporal;
+        uint8_t update_feat;
         uint8_t absolute_vals;
         uint8_t update_map;
         uint8_t prob[7];

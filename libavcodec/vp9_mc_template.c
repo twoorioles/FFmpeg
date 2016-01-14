@@ -401,6 +401,24 @@ static void FN(inter_pred)(AVCodecContext *ctx)
                 }
             }
         }
+
+        if (s->sidedata_flags & SIDEDATA_PREDICTION) {
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[0],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[0],
+                       col << 3, row << 3,
+                       s->dst[0], ls_y, 8, 8,
+                       s->cols << 3, s->rows << 3, bytesperpixel);
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[1],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[1],
+                       col << (3 - s->ss_h), row << (3 - s->ss_v),
+                       s->dst[1], ls_uv, 8 >> s->ss_h, 8 >> s->ss_v,
+                       s->cols << (3 - s->ss_h), s->rows << (3 - s->ss_v), bytesperpixel);
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[2],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[2],
+                       col << (3 - s->ss_h), row << (3 - s->ss_v),
+                       s->dst[2], ls_uv, 8 >> s->ss_h, 8 >> s->ss_v,
+                       s->cols << (3 - s->ss_h), s->rows << (3 - s->ss_v), bytesperpixel);
+        }
     } else {
         int bwl = bwlog_tab[0][b->bs];
         int bw = bwh_tab[0][b->bs][0] * 4, bh = bwh_tab[0][b->bs][1] * 4;
@@ -430,6 +448,24 @@ static void FN(inter_pred)(AVCodecContext *ctx)
                           ref2->data[2], ref2->linesize[2], tref2,
                           row << (3 - s->ss_v), col << (3 - s->ss_h),
                           &b->mv[0][1], 0, 0, uvbw, uvbh, uvbw, uvbh, w2, h2, 1);
+        }
+
+        if (s->sidedata_flags & SIDEDATA_PREDICTION) {
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[0],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[0],
+                       col << 3, row << 3,
+                       s->dst[0], ls_y, bw, bh,
+                       s->cols << 3, s->rows << 3, bytesperpixel);
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[1],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[1],
+                       col << (3 - s->ss_h), row << (3 - s->ss_v),
+                       s->dst[1], ls_uv, uvbw, uvbh,
+                       s->cols << (3 - s->ss_h), s->rows << (3 - s->ss_v), bytesperpixel);
+            copy_plane(s, s->s.frames[CUR_FRAME].pred[2],
+                       s->s.frames[CUR_FRAME].tf.f->linesize[2],
+                       col << (3 - s->ss_h), row << (3 - s->ss_v),
+                       s->dst[2], ls_uv, uvbw, uvbh,
+                       s->cols << (3 - s->ss_h), s->rows << (3 - s->ss_v), bytesperpixel);
         }
     }
 }

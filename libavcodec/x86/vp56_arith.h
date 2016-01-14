@@ -43,6 +43,7 @@ static av_always_inline int vp56_rac_get_prob(VP56RangeCoder *c, uint8_t prob)
         : "+q"(bit), "+&r"(c->high), "+&r"(c->code_word)
         : "r"(low_shift), "r"(low), "r"(code_word)
     );
+    c->cost += ff_vp56_bit_cost[bit ? 256 - prob : prob];
 
     return bit;
 }

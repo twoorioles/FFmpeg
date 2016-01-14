@@ -88,6 +88,7 @@ typedef struct VP56RangeCoder {
     const uint8_t *buffer;
     const uint8_t *end;
     unsigned int code_word;
+    unsigned int cost;
 } VP56RangeCoder;
 
 typedef struct VP56RefDc {
@@ -221,6 +222,7 @@ int ff_vp56_decode_frame(AVCodecContext *avctx, void *data, int *got_frame,
  */
 
 extern const uint8_t ff_vp56_norm_shift[256];
+extern const uint16_t ff_vp56_bit_cost[257];
 void ff_vp56_init_range_decoder(VP56RangeCoder *c, const uint8_t *buf, int buf_size);
 
 static av_always_inline unsigned int vp56_rac_renorm(VP56RangeCoder *c)
@@ -257,6 +259,7 @@ static av_always_inline int vp56_rac_get_prob(VP56RangeCoder *c, uint8_t prob)
 
     c->high = bit ? c->high - low : low;
     c->code_word = bit ? code_word - low_shift : code_word;
+    c->cost += ff_vp56_bit_cost[bit ? 256 - prob : prob];
 
     return bit;
 }
@@ -273,11 +276,13 @@ static av_always_inline int vp56_rac_get_prob_branchy(VP56RangeCoder *c, int pro
     if (code_word >= low_shift) {
         c->high     -= low;
         c->code_word = code_word - low_shift;
+        c->cost += ff_vp56_bit_cost[256 - prob];
         return 1;
     }
 
     c->high = low;
     c->code_word = code_word;
+    c->cost += ff_vp56_bit_cost[prob];
     return 0;
 }
 #endif

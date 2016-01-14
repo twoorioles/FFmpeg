@@ -106,12 +106,58 @@ enum AVFrameSideDataType {
      * @endcode
      */
     AV_FRAME_DATA_SKIP_SAMPLES,
-
     /**
      * This side data must be associated with an audio frame and corresponds to
      * enum AVAudioServiceType defined in avcodec.h.
      */
     AV_FRAME_DATA_AUDIO_SERVICE_TYPE,
+
+    /*
+     * block decomposition; goes down to 8x8 level with stride=(width+63)>>6<<3.
+     * entries are BlockInfo from vp9.h.
+     * only top-level fields of larger blocks are assigned; other entries may be
+     * left uninitialized.
+     */
+    AV_FRAME_DATA_BLOCK_INFO,
+
+    /**
+     * prediction buffer; this is identical to frame->data[] (and uses the same
+     * strides in frame->linesize[]), except that the data is pre-transform_add,
+     * so it is only the predictor.
+     */
+    AV_FRAME_DATA_PRED_Y,
+    AV_FRAME_DATA_PRED_U,
+    AV_FRAME_DATA_PRED_V,
+
+    /**
+     * reconstruction buffer; this is identical to frame->data[] (and uses the same
+     * strides in frame->linesize[]), except that the data is pre-loopfilter,
+     * so it is only the predictor + inverse transform'ed residual.
+     */
+    AV_FRAME_DATA_RECON_Y,
+    AV_FRAME_DATA_RECON_U,
+    AV_FRAME_DATA_RECON_V,
+
+    /**
+     * bits used per block; covers each plane separately up to 4x4 resolution.
+     * stride=(width+63)>>6<<4(y) or 3(uv), entries are uint16_t filled in
+     * 14.2 fixed-point format.
+     */
+    AV_FRAME_DATA_BITS_PER_BLOCK_Y,
+    AV_FRAME_DATA_BITS_PER_BLOCK_U,
+    AV_FRAME_DATA_BITS_PER_BLOCK_V,
+
+    /**
+     * bits used per bitstream feature. The number of items varies per codec
+     * but the format is identical: entries are unsigned int filled in 24.8
+     * fixed-point format.
+     */
+    AV_FRAME_DATA_BITS_PER_FEATURE,
+
+    /**
+     * Frame header(s).
+     */
+    AV_FRAME_DATA_HEADER,
 };
 
 enum AVActiveFormatDescription {
@@ -687,6 +733,20 @@ AVBufferRef *av_frame_get_plane_buffer(AVFrame *frame, int plane);
 AVFrameSideData *av_frame_new_side_data(AVFrame *frame,
                                         enum AVFrameSideDataType type,
                                         int size);
+
+/**
+ * Add an existing buffer as side-data to a frame.
+ *
+ * @param frame a frame to which the side data should be added
+ * @param type type of the added side data
+ * @param buffer an existing buffer that shall be referenced as side-data for
+ *               the given side-data type in the given frame
+ *
+ * @return newly added side data on success, NULL on error
+ */
+AVFrameSideData *av_frame_new_side_data_from_buffer(AVFrame *frame,
+                                                    enum AVFrameSideDataType type,
+                                                    AVBufferRef *buf);
 
 /**
  * @return a pointer to the side data of a given type on success, NULL if there
